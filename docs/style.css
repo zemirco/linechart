@@ -1,0 +1,19 @@
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 50px 0 0 0;
+  font: 16px/1.4 Helvetica, Arial, sans-serif;
+}
+
+.line {
+  fill: none;
+  stroke-width: 1.5px;
+}
+
+.grid line {
+  stroke: #eee;
+}
