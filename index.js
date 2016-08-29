@@ -13,21 +13,16 @@ const defaults = {
 
   margin: {
     top: 15,
-    right: 0,
+    right: 10,
     bottom: 35,
     left: 60
   },
 
-  axisPadding: 0,
-
   tickSize: 5,
-
-  xTicks: 0,
 
   yTicks: 5,
 
   curve: curveLinear
-
 }
 
 /**
@@ -41,8 +36,8 @@ export default class LineChart {
   }
 
   init () {
-    const {target, width, height, margin, axisPadding, curve} = this
-    const {tickSize, xTicks, yTicks} = this
+    const {target, width, height, margin, curve} = this
+    const {tickSize, yTicks} = this
     const w = this.w = width - margin.left - margin.right
     const h = this.h = height - margin.top - margin.bottom
 
@@ -61,9 +56,7 @@ export default class LineChart {
       .range([h, 0])
 
     this.xAxis = axisBottom(this.x)
-      .ticks(xTicks)
-      .tickPadding(8)
-      .tickSize(tickSize)
+      .ticks(0)
 
     this.yAxis = axisLeft(this.y)
       .ticks(yTicks)
@@ -71,16 +64,14 @@ export default class LineChart {
       .tickSize(tickSize)
 
     this.chart.append('g')
+      .attr('class', 'y grid')
+
+    this.chart.append('g')
       .attr('class', 'x axis')
-      .attr('transform', `translate(0, ${h + axisPadding})`)
+      .attr('transform', `translate(0, ${h})`)
 
     this.chart.append('g')
       .attr('class', 'y axis')
-      .attr('transform', `translate(${-axisPadding}, 0)`)
-
-    this.chart.append('g')
-      .attr('class', 'x grid')
-      .attr('transform', `translate(0, ${h})`)
 
     this.line = line()
       .x((d, i) => this.x(i))
@@ -106,23 +97,32 @@ export default class LineChart {
     c.select('.y.axis').call(yAxis)
   }
 
-  // renderDots (data) {
-  //   const dots = this.chart
-  //     .selectAll('.dot')
-  //     .data(data)
+  /**
+   * Render dots.
+   */
+  renderDots (data) {
+    const group = [data.map(d => d.scoreTeamA), data.map(d => d.scoreTeamB)]
+    this.drawCircles(group[0], 0, 'a')
+    this.drawCircles(group[1], 1, 'b')
+  }
 
-  //   dots.enter()
-  //     .append('circle')
-  //     .attr('class', 'dot')
-  //     .attr('cx', d => this.x(d.x))
-  //     .attr('cy', d => this.y(d.y))
-  //     .attr('r', 5)
-
-  //   const t = transition().duration()
-  //   dots.transition(t)
-  //     .attr('cx', d => this.x(d.x))
-  //     .attr('cy', d => this.y(d.y))
-  // }
+  /**
+   * Draw circles for single team.
+   */
+  drawCircles (data, i, side) {
+    const dots = this.chart
+      .selectAll(`.dot.${side}`)
+      .data(data)
+      .enter()
+      .append('circle')
+      .attr('class', `.dot.${side}`)
+      .attr('cx', (d, i) => this.x(i))
+      .attr('cy', d => this.y(d))
+      .attr('r', 5)
+      .style('fill', () => this.color(i))
+      .style('stroke', '#fff')
+      .style('stroke-width', 2)
+  }
 
   /**
    * Render area.
@@ -162,12 +162,14 @@ export default class LineChart {
    * Render grid.
    */
   renderGrid (data) {
-    const grid = this.chart
-      .selectAll('.grid.x')
+    const {yTicks, tickSize} = this
+    this.chart
+      .selectAll('.grid.y')
       .call(
-        axisBottom(this.x)
-          .ticks(10)
-          .tickSize(-this.h)
+        axisLeft(this.y)
+          .ticks(yTicks)
+          .tickSizeInner(-this.w)
+          .tickSizeOuter(0)
           .tickFormat('')
       )
   }
@@ -176,11 +178,12 @@ export default class LineChart {
    * Render.
    */
   render (data, options) {
-    this.renderGrid(data)
+    // render axis first because it sets the x and y domains
     this.renderAxis(data, options)
+    this.renderGrid(data)
     this.renderArea(data, options)
     this.renderLine(data, options)
-    // this.renderDots(data, options)
+    this.renderDots(data, options)
   }
 
   /**

@@ -14,6 +14,11 @@ body {
   stroke-width: 1.5px;
 }
 
+.tick line {
+  shape-rendering: crispEdges;
+}
+
 .grid line {
   stroke: #eee;
+  shape-rendering: crispEdges;
 }
