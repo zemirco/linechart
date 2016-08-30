@@ -1,5 +1,5 @@
 
-import {select} from 'd3-selection'
+import {select, mouse} from 'd3-selection'
 import {scaleLinear, scaleOrdinal, schemeCategory10} from 'd3-scale'
 import {axisBottom, axisLeft} from 'd3-axis'
 import {line, curveLinear, area} from 'd3-shape'
@@ -115,13 +115,46 @@ export default class LineChart {
       .data(data)
       .enter()
       .append('circle')
-      .attr('class', `.dot.${side}`)
+      .attr('class', `dot ${side}`)
       .attr('cx', (d, i) => this.x(i))
       .attr('cy', d => this.y(d))
       .attr('r', 5)
       .style('fill', () => this.color(i))
       .style('stroke', '#fff')
       .style('stroke-width', 2)
+  }
+
+  /**
+   * Render overlay.
+   */
+  renderOverlay (data) {
+    const group = [data.map(d => d.scoreTeamA), data.map(d => d.scoreTeamB)]
+    this.chart.append('rect')
+      .attr('class', 'overlay')
+      .attr('width', this.w)
+      .attr('height', this.h)
+      .style('fill', 'transparent')
+      .on('mousemove', (event) => {
+        console.log('mouse move')
+        const m = mouse(this.chart.node())
+        const x = this.x.invert(m[0])
+        const i = Math.round(x)
+        console.log(data[i])
+
+        this.chart
+          .selectAll('.dot.a')
+          .style('stroke', (d, j) => i === j ? this.color(0) : '#fff')
+
+        this.chart
+          .selectAll('.dot.b')
+          .style('stroke', (d, j) => i === j ? this.color(1) : '#fff')
+      })
+      .on('mouseover', () => {
+        console.log('mouse over')
+      })
+      .on('mouseleave', () => {
+        console.log('mouse leave')
+      })
   }
 
   /**
@@ -184,6 +217,7 @@ export default class LineChart {
     this.renderArea(data, options)
     this.renderLine(data, options)
     this.renderDots(data, options)
+    this.renderOverlay(data)
   }
 
   /**
