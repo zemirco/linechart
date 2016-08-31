@@ -35,21 +35,3 @@ body {
   pointer-events: none;
   font-size: .8em;
 }
-
-.linechart.tip:after {
-  top: 100%;
-  left: 50%;
-  border: solid transparent;
-  content: " ";
-  height: 0;
-  width: 0;
-  position: absolute;
-  pointer-events: none;
-}
-
-.linechart.tip:after {
-  border-color: rgba(0,0,0,0);
-  border-top-color: rgb(34, 39, 42);
-  border-width: 5px;
-  margin-left: -5px;
-}

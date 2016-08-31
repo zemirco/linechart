@@ -139,11 +139,9 @@ export default class LineChart {
       .attr('height', this.h)
       .style('fill', 'transparent')
       .on('mousemove', (event) => {
-        console.log('mouse move')
         const m = mouse(this.chart.node())
         const x = this.x.invert(m[0])
         const i = Math.round(x)
-        console.log(data[i])
 
         this.chart
           .selectAll('.dot.a')
@@ -156,22 +154,26 @@ export default class LineChart {
         const scoreTeamA = data[i].scoreTeamA
         const scoreTeamB = data[i].scoreTeamB
         const max = scoreTeamA > scoreTeamB ? scoreTeamA : scoreTeamB
-        console.log(max)
 
         const left = this.x(i) + this.margin.left
         const top = this.y(max) + this.margin.top
         const marginTop = 25
         const tipWidth = 200
         const tipHeight = 100
-        select('.linechart.tip')
-          .style('left', `${left - (tipWidth / 2)}px`)
-          .style('top', `${top - tipHeight}px`)
+        // check left edge
+        const sel = select('.linechart.tip')
+        if (m[0] > tipWidth / 2) {
+          sel.style('left', `${left - (tipWidth / 2)}px`)
+        } else {
+          const xFixed = this.x.invert(tipWidth / 2)
+          sel.style('left', `${this.x(xFixed) + this.margin.left - (tipWidth / 2)}px`)
+        }
+
+        sel.style('top', `${top - tipHeight}px`)
       })
       .on('mouseover', () => {
-        console.log('mouse over')
       })
       .on('mouseleave', () => {
-        console.log('mouse leave')
       })
   }
 
