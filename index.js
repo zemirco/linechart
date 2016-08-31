@@ -82,6 +82,10 @@ export default class LineChart {
       .x((d, i) => this.x(i))
       .y0(h)
       .y1(d => this.y(d))
+
+    select('body')
+      .append('div')
+      .attr('class', 'linechart tip')
   }
 
   /**
@@ -148,6 +152,20 @@ export default class LineChart {
         this.chart
           .selectAll('.dot.b')
           .style('stroke', (d, j) => i === j ? this.color(1) : '#fff')
+
+        const scoreTeamA = data[i].scoreTeamA
+        const scoreTeamB = data[i].scoreTeamB
+        const max = scoreTeamA > scoreTeamB ? scoreTeamA : scoreTeamB
+        console.log(max)
+
+        const left = this.x(i) + this.margin.left
+        const top = this.y(max) + this.margin.top
+        const marginTop = 25
+        const tipWidth = 200
+        const tipHeight = 100
+        select('.linechart.tip')
+          .style('left', `${left - (tipWidth / 2)}px`)
+          .style('top', `${top - tipHeight}px`)
       })
       .on('mouseover', () => {
         console.log('mouse over')
