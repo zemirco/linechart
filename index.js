@@ -5,6 +5,11 @@ import {axisBottom, axisLeft} from 'd3-axis'
 import {line, curveLinear, area} from 'd3-shape'
 import {transition} from 'd3-transition'
 
+// tip settings
+const tipWidth = 250
+const tipHeight = 100
+const tipMarginTop = 25
+
 const defaults = {
 
   width: 800,
@@ -44,6 +49,7 @@ export default class LineChart {
     this.color = scaleOrdinal(schemeCategory10)
 
     this.chart = select(target)
+      .append('svg')
       .attr('width', width)
       .attr('height', height)
       .append('g')
@@ -83,9 +89,32 @@ export default class LineChart {
       .y0(h)
       .y1(d => this.y(d))
 
-    select('body')
-      .append('div')
+    const tip = select(target).append('div')
       .attr('class', 'linechart tip')
+
+    tip.append('div')
+      .attr('class', 'tip title')
+      .text('Attack winner by Max Mustermann')
+
+    const teamA = tip.append('div')
+      .attr('class', 'tip team')
+      .style('color', () => this.color(0))
+
+    teamA.append('span')
+      .text('Wayne / Johnson')
+
+    teamA.append('span')
+      .text('19')
+
+    const teamB = tip.append('div')
+      .attr('class', 'tip team')
+      .style('color', () => this.color(1))
+
+    teamB.append('span')
+      .text('Svenson / Johanson')
+
+    teamB.append('span')
+      .text('11')
   }
 
   /**
@@ -114,7 +143,7 @@ export default class LineChart {
    * Draw circles for single team.
    */
   drawCircles (data, i, side) {
-    const dots = this.chart
+    this.chart
       .selectAll(`.dot.${side}`)
       .data(data)
       .enter()
@@ -132,7 +161,7 @@ export default class LineChart {
    * Render overlay.
    */
   renderOverlay (data) {
-    const group = [data.map(d => d.scoreTeamA), data.map(d => d.scoreTeamB)]
+    // const group = [data.map(d => d.scoreTeamA), data.map(d => d.scoreTeamB)]
     this.chart.append('rect')
       .attr('class', 'overlay')
       .attr('width', this.w)
@@ -154,22 +183,33 @@ export default class LineChart {
         const scoreTeamA = data[i].scoreTeamA
         const scoreTeamB = data[i].scoreTeamB
         const max = scoreTeamA > scoreTeamB ? scoreTeamA : scoreTeamB
+        const min = scoreTeamA < scoreTeamB ? scoreTeamA : scoreTeamB
 
         const left = this.x(i) + this.margin.left
         const top = this.y(max) + this.margin.top
-        const marginTop = 25
-        const tipWidth = 200
-        const tipHeight = 100
-        // check left edge
+        const bottom = this.y(min) + this.margin.top
         const sel = select('.linechart.tip')
-        if (m[0] > tipWidth / 2) {
-          sel.style('left', `${left - (tipWidth / 2)}px`)
-        } else {
+        // check left edge
+        if (m[0] <= tipWidth / 2) {
+          // left edge
           const xFixed = this.x.invert(tipWidth / 2)
-          sel.style('left', `${this.x(xFixed) + this.margin.left - (tipWidth / 2)}px`)
+          sel.style('left', `${this.x(Math.ceil(xFixed)) + this.margin.left - (tipWidth / 2)}px`)
+        } else if (m[0] >= (this.w - tipWidth / 2)) {
+          // right edge
+          const xFixed = this.x.invert(this.w - (tipWidth / 2))
+          sel.style('left', `${this.x(Math.floor(xFixed)) + this.margin.left - (tipWidth / 2)}px`)
+        } else {
+          // default
+          sel.style('left', `${left - (tipWidth / 2)}px`)
         }
 
-        sel.style('top', `${top - tipHeight}px`)
+        if (top - tipHeight - tipMarginTop > 0) {
+          // default
+          sel.style('top', `${top - tipHeight - tipMarginTop}px`)
+        } else {
+          // check top edge
+          sel.style('top', `${bottom + tipMarginTop}px`)
+        }
       })
       .on('mouseover', () => {
       })
@@ -215,7 +255,7 @@ export default class LineChart {
    * Render grid.
    */
   renderGrid (data) {
-    const {yTicks, tickSize} = this
+    const {yTicks} = this
     this.chart
       .selectAll('.grid.y')
       .call(
