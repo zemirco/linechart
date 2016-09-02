@@ -48,7 +48,11 @@ export default class LineChart {
 
     this.color = scaleOrdinal(schemeCategory10)
 
-    this.chart = select(target)
+    const wrapper = select(target)
+      .append('div')
+      .style('position', 'relative')
+
+    this.chart = wrapper
       .append('svg')
       .attr('width', width)
       .attr('height', height)
@@ -89,7 +93,8 @@ export default class LineChart {
       .y0(h)
       .y1(d => this.y(d))
 
-    const tip = select(target).append('div')
+    const tip = wrapper
+      .append('div')
       .attr('class', 'linechart tip')
 
     tip.append('div')
@@ -123,9 +128,8 @@ export default class LineChart {
   renderAxis (data, options) {
     const {chart, x, y, xAxis, yAxis} = this
     x.domain([0, data.length - 1])
-    y.domain([0, 21])
-    const t = transition().duration()
-    const c = chart.transition(t)
+    y.domain([0, Math.max(data[data.length - 1].scoreTeamA, data[data.length - 1].scoreTeamB)])
+    const c = chart.transition()
     c.select('.x.axis').call(xAxis)
     c.select('.y.axis').call(yAxis)
   }
@@ -143,18 +147,29 @@ export default class LineChart {
    * Draw circles for single team.
    */
   drawCircles (data, i, side) {
-    this.chart
+    const s = this.chart
       .selectAll(`.dot.${side}`)
       .data(data)
-      .enter()
+
+    // enter
+    s.enter()
       .append('circle')
       .attr('class', `dot ${side}`)
       .attr('cx', (d, i) => this.x(i))
       .attr('cy', d => this.y(d))
+      .transition()
       .attr('r', 5)
       .style('fill', () => this.color(i))
       .style('stroke', '#fff')
-      .style('stroke-width', 2)
+      .style('stroke-width', '2px')
+
+    // transition
+    s.transition()
+      .attr('cx', (d, i) => this.x(i))
+      .attr('cy', d => this.y(d))
+
+    // exit
+    s.exit().transition().remove()
   }
 
   /**
@@ -190,11 +205,11 @@ export default class LineChart {
         const bottom = this.y(min) + this.margin.top
         const sel = select('.linechart.tip')
         // check left edge
-        if (m[0] <= tipWidth / 2) {
+        if (left - (tipWidth / 2) - this.margin.left <= 0) {
           // left edge
           const xFixed = this.x.invert(tipWidth / 2)
           sel.style('left', `${this.x(Math.ceil(xFixed)) + this.margin.left - (tipWidth / 2)}px`)
-        } else if (m[0] >= (this.w - tipWidth / 2)) {
+        } else if (left >= (this.w - tipWidth / 2)) {
           // right edge
           const xFixed = this.x.invert(this.w - (tipWidth / 2))
           sel.style('left', `${this.x(Math.floor(xFixed)) + this.margin.left - (tipWidth / 2)}px`)
@@ -222,33 +237,52 @@ export default class LineChart {
    */
   renderArea (data) {
     const group = [data.map(d => d.scoreTeamA), data.map(d => d.scoreTeamB)]
-    this.chart
+
+    const s = this.chart
       .selectAll('.area')
       .data(group)
-      .enter()
+
+    // enter
+    s.enter()
       .append('path')
       .attr('class', 'area')
+      .transition()
       .attr('d', (d, i) => this.area(group[i]))
       .style('opacity', 0.5)
       .style('fill', (d, i) => this.color(i))
+
+    // transition
+    s.transition()
+      .attr('d', (d, i) => this.area(group[i]))
+
+    // exit
+    s.exit().remove()
   }
 
   /**
    * Render line.
    */
   renderLine (data) {
-    // const t = transition().duration()
-
     const group = [data.map(d => d.scoreTeamA), data.map(d => d.scoreTeamB)]
 
-    this.chart
+    const s = this.chart
       .selectAll('.line')
       .data(group)
-      .enter()
+
+    // enter
+    s.enter()
       .append('path')
       .attr('class', 'line')
+      .transition()
       .attr('d', (d, i) => this.line(group[i]))
       .style('stroke', (d, i) => this.color(i))
+
+    // transition
+    s.transition()
+      .attr('d', (d, i) => this.line(group[i]))
+
+    // exit
+    s.exit().transition().remove()
   }
 
   /**
@@ -258,6 +292,7 @@ export default class LineChart {
     const {yTicks} = this
     this.chart
       .selectAll('.grid.y')
+      .transition()
       .call(
         axisLeft(this.y)
           .ticks(yTicks)

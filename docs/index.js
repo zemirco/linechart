@@ -293,29 +293,77 @@ const a = [
   }
 ]
 
+const b = [
+  {description:"", scoreTeamA:0, scoreTeamB:0, firstName:"", lastName:""},
+  {description:"Dig error", scoreTeamA:0, scoreTeamB:1, firstName:"Julius", lastName:"Brink"},
+  {description:"Dig error", scoreTeamA:0, scoreTeamB:2, firstName:"Julius", lastName:"Brink"},
+  {description:"Unforced error", scoreTeamA:1, scoreTeamB:2, firstName:"Jonas", lastName:"Reckermann"},
+  {description:"Block winner", scoreTeamA:2, scoreTeamB:2, firstName:"Jonas", lastName:"Reckermann"},
+  {description:"Attack winner", scoreTeamA:3, scoreTeamB:2, firstName:"Julius", lastName:"Brink"},
+  {description:"Dig error", scoreTeamA:3, scoreTeamB:3, firstName:"Julius", lastName:"Brink"},
+  {description:"Attack winner", scoreTeamA:4, scoreTeamB:3, firstName:"Julius", lastName:"Brink"},
+  {description:"Dig error","scoreTeamA":4,"scoreTeamB":4,"firstName":"Julius","lastName":"Brink"},
+  {description:"Attack winner","scoreTeamA":5,"scoreTeamB":4,"firstName":"Jonas","lastName":"Reckermann"},
+  {description:"Dig error","scoreTeamA":5,"scoreTeamB":5,"firstName":"Julius","lastName":"Brink"},
+  {description:"Unforced error","scoreTeamA":6,"scoreTeamB":5,"firstName":"Jonas","lastName":"Reckermann"},
+  {description:"Attack winner","scoreTeamA":7,"scoreTeamB":5,"firstName":"Jonas","lastName":"Reckermann"},
+  {description:"Dig error","scoreTeamA":7,"scoreTeamB":6,"firstName":"Julius","lastName":"Brink"},
+  {description:"Block error","scoreTeamA":7,"scoreTeamB":7,"firstName":"Jonas","lastName":"Reckermann"},
+  {description:"Attack winner","scoreTeamA":8,"scoreTeamB":7,"firstName":"Jonas","lastName":"Reckermann"},
+  {description:"Block winner","scoreTeamA":9,"scoreTeamB":7,"firstName":"Jonas","lastName":"Reckermann"},
+  {description:"Dig error","scoreTeamA":9,"scoreTeamB":8,"firstName":"Julius","lastName":"Brink"},
+  {description:"Attack winner","scoreTeamA":10,"scoreTeamB":8,"firstName":"Jonas","lastName":"Reckermann"},
+  {description:"Unforced error","scoreTeamA":11,"scoreTeamB":8,"firstName":"Jonas","lastName":"Reckermann"},
+  {description:"Unforced error","scoreTeamA":12,"scoreTeamB":8,"firstName":"Jonas","lastName":"Reckermann"},
+  {description:"Block error","scoreTeamA":12,"scoreTeamB":9,"firstName":"Jonas","lastName":"Reckermann"},
+  {description:"Block winner","scoreTeamA":13,"scoreTeamB":9,"firstName":"Jonas","lastName":"Reckermann"},
+  {description:"Block error","scoreTeamA":13,"scoreTeamB":10,"firstName":"Jonas","lastName":"Reckermann"},
+  {description:"Dig error","scoreTeamA":13,"scoreTeamB":11,"firstName":"Julius","lastName":"Brink"},
+  {description:"Attack winner","scoreTeamA":14,"scoreTeamB":11,"firstName":"Jonas","lastName":"Reckermann"},
+  {description:"Block error","scoreTeamA":14,"scoreTeamB":12,"firstName":"Jonas","lastName":"Reckermann"},
+  {description:"Attack error","scoreTeamA":14,"scoreTeamB":13,"firstName":"Jonas","lastName":"Reckermann"},
+  {description:"Reception error", scoreTeamA: 14, scoreTeamB:14, firstName: "Julius", lastName: "Brink"},
+  {description:"Attack winner", scoreTeamA: 15, scoreTeamB: 14, firstName: "Jonas", lastName: "Reckermann"},
+  {description:"Unforced error", scoreTeamA: 16, scoreTeamB: 14, firstName: "Jonas", lastName: "Reckermann"}
+]
+
 class App extends Component {
 
   componentDidMount () {
     this.lineChart = new LineChart({
       target: this.refs.svg
     })
+    this.lineChart.render(b)
+    window.addEventListener('resize', this.resize)
+  }
+
+  resize = () => {
+    const {svg} = this.refs
+    svg.removeChild(svg.firstChild)
+    const width = svg.offsetWidth
+    this.lineChart = new LineChart({
+      target: this.refs.svg,
+      width
+    })
     this.lineChart.render(a)
   }
 
+  componentWillUnmount () {
+    window.removeEventListener('resize', this.resize)
+  }
+
   onClick = () => {
-    // this.lineChart.update(b)
+    this.lineChart.update(a)
   }
 
   render () {
     return (
-      <div style={{position: 'relative'}}>
+      <section>
         <div ref='svg' />
-        <div>
-          <button onClick={this.onClick}>
-            Animate
-          </button>
-        </div>
-      </div>
+        <button onClick={this.onClick}>
+          Animate
+        </button>
+      </section>
     )
   }
 
