@@ -227,8 +227,14 @@ export default class LineChart {
         }
       })
       .on('mouseover', () => {
+        select('.linechart.tip')
+          .transition()
+          .style('opacity', 1)
       })
       .on('mouseleave', () => {
+        select('.linechart.tip')
+          .transition()
+          .style('opacity', 0)
       })
   }
 
