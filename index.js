@@ -5,11 +5,6 @@ import {axisBottom, axisLeft} from 'd3-axis'
 import {line, curveLinear, area} from 'd3-shape'
 import 'd3-transition'
 
-// tip settings
-const tipWidth = 250
-const tipHeight = 100
-const tipMarginTop = 25
-
 const defaults = {
 
   width: 800,
@@ -27,7 +22,13 @@ const defaults = {
 
   yTicks: 5,
 
-  curve: curveLinear
+  curve: curveLinear,
+
+  tip: {
+    width: 250,
+    height: 85,
+    margin: 25
+  }
 }
 
 /**
@@ -206,25 +207,25 @@ export default class LineChart {
         const bottom = this.y(min) + this.margin.top
         const sel = select('.linechart.tip')
         // check left edge
-        if (left - (tipWidth / 2) - this.margin.left <= 0) {
+        if (left - (this.tip.width / 2) - this.margin.left <= 0) {
           // left edge
-          const xFixed = this.x.invert(tipWidth / 2)
-          sel.style('left', `${this.x(Math.ceil(xFixed)) + this.margin.left - (tipWidth / 2)}px`)
-        } else if (left >= (this.w - tipWidth / 2)) {
+          const xFixed = this.x.invert(this.tip.width / 2)
+          sel.style('left', `${this.x(Math.ceil(xFixed)) + this.margin.left - (this.tip.width / 2)}px`)
+        } else if (left >= (this.w - this.tip.width / 2)) {
           // right edge
-          const xFixed = this.x.invert(this.w - (tipWidth / 2))
-          sel.style('left', `${this.x(Math.floor(xFixed)) + this.margin.left - (tipWidth / 2)}px`)
+          const xFixed = this.x.invert(this.w - (this.tip.width / 2))
+          sel.style('left', `${this.x(Math.floor(xFixed)) + this.margin.left - (this.tip.width / 2)}px`)
         } else {
           // default
-          sel.style('left', `${left - (tipWidth / 2)}px`)
+          sel.style('left', `${left - (this.tip.width / 2)}px`)
         }
 
-        if (top - tipHeight - tipMarginTop > 0) {
+        if (top - this.tip.height - this.tip.margin > 0) {
           // default
-          sel.style('top', `${top - tipHeight - tipMarginTop}px`)
+          sel.style('top', `${top - this.tip.height - this.tip.margin}px`)
         } else {
           // check top edge
-          sel.style('top', `${bottom + tipMarginTop}px`)
+          sel.style('top', `${bottom + this.tip.margin}px`)
         }
 
         // update title
@@ -247,6 +248,11 @@ export default class LineChart {
           .style('opacity', opacity)
       })
       .on('mouseleave', () => {
+        // deselect dots
+        this.chart
+          .selectAll('.dot')
+          .style('stroke', '#fff')
+        // hide tooltip
         select('.linechart.tip')
           .transition()
           .style('opacity', 0)
