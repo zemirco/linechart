@@ -3,7 +3,7 @@ import {select, mouse} from 'd3-selection'
 import {scaleLinear, scaleOrdinal, schemeCategory10} from 'd3-scale'
 import {axisBottom, axisLeft} from 'd3-axis'
 import {line, curveLinear, area} from 'd3-shape'
-import {transition} from 'd3-transition'
+import 'd3-transition'
 
 // tip settings
 const tipWidth = 250
@@ -99,36 +99,36 @@ export default class LineChart {
 
     tip.append('div')
       .attr('class', 'tip title')
-      .text('Attack winner by Max Mustermann')
 
     const teamA = tip.append('div')
       .attr('class', 'tip team')
       .style('color', () => this.color(0))
 
     teamA.append('span')
-      .text('Wayne / Johnson')
+      .attr('class', 'tip team teamA name')
 
     teamA.append('span')
-      .text('19')
+      .attr('class', 'tip team teamA score')
 
     const teamB = tip.append('div')
       .attr('class', 'tip team')
       .style('color', () => this.color(1))
 
     teamB.append('span')
-      .text('Svenson / Johanson')
+      .attr('class', 'tip team teamB name')
 
     teamB.append('span')
-      .text('11')
+      .attr('class', 'tip team teamB score')
   }
 
   /**
    * Render axis.
    */
-  renderAxis (data, options) {
+  renderAxis (data) {
     const {chart, x, y, xAxis, yAxis} = this
-    x.domain([0, data.length - 1])
-    y.domain([0, Math.max(data[data.length - 1].scoreTeamA, data[data.length - 1].scoreTeamB)])
+    const count = data.length - 1
+    x.domain([0, count])
+    y.domain([0, Math.max(data[count].scoreTeamA, data[count].scoreTeamB)])
     const c = chart.transition()
     c.select('.x.axis').call(xAxis)
     c.select('.y.axis').call(yAxis)
@@ -139,14 +139,14 @@ export default class LineChart {
    */
   renderDots (data) {
     const group = [data.map(d => d.scoreTeamA), data.map(d => d.scoreTeamB)]
-    this.drawCircles(group[0], 0, 'a')
-    this.drawCircles(group[1], 1, 'b')
+    this._drawCircles(group[0], 0, 'a')
+    this._drawCircles(group[1], 1, 'b')
   }
 
   /**
    * Draw circles for single team.
    */
-  drawCircles (data, i, side) {
+  _drawCircles (data, i, side) {
     const s = this.chart
       .selectAll(`.dot.${side}`)
       .data(data)
@@ -187,6 +187,7 @@ export default class LineChart {
         const x = this.x.invert(m[0])
         const i = Math.round(x)
 
+        // highlight current dots for team a and team b
         this.chart
           .selectAll('.dot.a')
           .style('stroke', (d, j) => i === j ? this.color(0) : '#fff')
@@ -225,11 +226,25 @@ export default class LineChart {
           // check top edge
           sel.style('top', `${bottom + tipMarginTop}px`)
         }
-      })
-      .on('mouseover', () => {
-        select('.linechart.tip')
-          .transition()
-          .style('opacity', 1)
+
+        // update title
+        select('.tip.title')
+          .text(`${data[i].description} by ${data[i].firstName} ${data[i].lastName}`)
+
+        // update score
+        select('.tip.teamA.score')
+          .text(`${data[i].scoreTeamA}`)
+
+        select('.tip.teamB.score')
+          .text(`${data[i].scoreTeamB}`)
+
+        // hide tip at origin
+        let opacity = 1
+        if (i === 0) {
+          opacity = 0
+        }
+        sel
+          .style('opacity', opacity)
       })
       .on('mouseleave', () => {
         select('.linechart.tip')
@@ -252,10 +267,10 @@ export default class LineChart {
     s.enter()
       .append('path')
       .attr('class', 'area')
-      .transition()
-      .attr('d', (d, i) => this.area(group[i]))
       .style('opacity', 0.5)
       .style('fill', (d, i) => this.color(i))
+      .transition()
+      .attr('d', (d, i) => this.area(group[i]))
 
     // transition
     s.transition()
@@ -309,15 +324,25 @@ export default class LineChart {
   }
 
   /**
+   * Set team names in tip.
+   */
+  setTeams (sideA, sideB) {
+    select('.tip.team.teamA.name')
+      .text(sideA)
+    select('.tip.team.teamB.name')
+      .text(sideB)
+  }
+
+  /**
    * Render.
    */
-  render (data, options) {
+  render (data) {
     // render axis first because it sets the x and y domains
-    this.renderAxis(data, options)
+    this.renderAxis(data)
     this.renderGrid(data)
-    this.renderArea(data, options)
-    this.renderLine(data, options)
-    this.renderDots(data, options)
+    this.renderArea(data)
+    this.renderLine(data)
+    this.renderDots(data)
     this.renderOverlay(data)
   }
 
@@ -325,9 +350,7 @@ export default class LineChart {
    * Update
    */
   update (data) {
-    this.render(data, {
-      animate: true
-    })
+    this.render(data)
   }
 
 }
