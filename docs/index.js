@@ -329,13 +329,33 @@ const b = [
 
 class App extends Component {
 
+  state = {
+    moves: []
+  }
+
   componentDidMount () {
-    this.lineChart = new LineChart({
-      target: this.refs.svg
-    })
-    this.lineChart.setTeams('Brink / Reckermann', 'Cerutti / Rego')
-    this.lineChart.render(b)
+    this.fetch(a)
     window.addEventListener('resize', this.resize)
+  }
+
+  componentWillUnmount () {
+    window.removeEventListener('resize', this.resize)
+  }
+
+  componentDidUpdate (prevProps, prevState) {
+    this.draw(prevState.moves.length)
+  }
+
+  draw = (update) => {
+    if (update) {
+      this.lineChart.update(this.state.moves)
+    } else {
+      this.lineChart = new LineChart({
+        target: this.refs.svg
+      })
+      this.lineChart.setTeams('Brink / Reckermann', 'Cerutti / Rego')
+      this.lineChart.render(this.state.moves)
+    }
   }
 
   resize = () => {
@@ -346,15 +366,17 @@ class App extends Component {
       target: this.refs.svg,
       width
     })
-    this.lineChart.render(a)
-  }
-
-  componentWillUnmount () {
-    window.removeEventListener('resize', this.resize)
+    this.lineChart.render(this.state.moves)
   }
 
   onClick = () => {
-    this.lineChart.update(a)
+    this.fetch(b)
+  }
+
+  fetch = (moves) => {
+    window.setTimeout(() => {
+      this.setState({moves})
+    }, 500)
   }
 
   render () {
